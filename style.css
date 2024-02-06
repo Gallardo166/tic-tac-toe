@@ -1,0 +1,41 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6vh;
+}
+
+.body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7vh;
+}
+
+.players {
+    display: flex;
+    gap:6vw;
+    justify-content: center;
+}
+
+#player-1, #player-2 {
+    border: 1px solid black;
+    width: 32vw;
+    height: 8vh;
+}
+
+.gameboard {
+    display: grid;
+    grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+    width: 50vw
+}
+
+.cell {
+    border: 1px solid black;
+    height: calc(50vw / 3)
+}

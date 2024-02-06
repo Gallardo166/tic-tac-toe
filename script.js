@@ -26,15 +26,8 @@ const gameBoard = (function() {
         gameBoard.columns = columns;
     };
 
-    const editGameBoard = function(activePlayer) {
-        let valid = false;
-        while (!valid) {
-            let [row, column] = prompt(`${activePlayer.name}: Where to place?`).split(",");
-            if (gameBoard.board[row][column] == "") {
-                gameBoard.board[row][column] = activePlayer.marker;
-                valid = true;
-            } else {alert("This spot is taken!")}
-        };
+    const editGameBoard = function(activePlayer, row, column) {
+        gameBoard.board[row][column] = activePlayer.marker;
         console.log(gameBoard.board);
     };
 
@@ -58,38 +51,85 @@ const ticTacToeGame = (function() {
     let secondPlayer = createPlayer("O", "Player 2");
     let players = [firstPlayer, secondPlayer];
     let activePlayer = players[0];
-    let win = false;
+    let valid = false;
 
     pubsub.emit("createGameBoard", 3, 3);
 
     const initRound = function() {
-        pubsub.emit("editGameBoard", activePlayer);
-        switchPlayer();
-    }
+        document.body.addEventListener("mousedown", (e) => {
+            if (e.target.classList.contains("cell")) {
+                enableCheckWin();
+                if (!checkWin(gameBoard.getGameBoard())) {
+                    enablePlaceMarker();
+                    enableSwitchPlayer();
+                } else {
+                    disablePlaceMarker();
+                    disableSwitchPlayer();
+                };
+                console.log(checkWin(gameBoard.getGameBoard()));
+            };
+        });
+    };
 
-    const switchPlayer = function() {
-        (activePlayer == players[0]) ? activePlayer = players[1] : activePlayer = players[0];
-    }
+    const placeMarker = (e) => {
+        if (e.target.classList.contains("cell")) {
+            if (e.target.textContent == "") {
+                e.target.textContent = activePlayer.marker;
+                currentRow = Number(e.target.classList[1].at(-1)) - 1;
+                currentColumn = Number(e.target.classList[2].at(-1)) - 1;
+                pubsub.emit("editGameBoard", activePlayer, currentRow, currentColumn);
+                valid = true;
+            } else {
+                alert("This spot is taken!");
+                valid = false;
+            };
+        };
+    }; 
 
-    const checkWin = function(gameBoard) {
-        for (let i=0; i<gameBoard.rows-1; i++) {
+    const switchPlayer = function(e) {
+        if (e.target.classList.contains("cell") && valid) {
+            (activePlayer == players[0]) ? activePlayer = players[1] : activePlayer = players[0];
+        };
+    };
+
+    function checkWin() {
+        let win = false;
+        for (let i=0; i<gameBoard.getGameBoard().rows; i++) {
             if (!win) {
-                win = gameBoard.board[i].every((element) => ((element === gameBoard.board[i][0]) && (gameBoard.board[i][0] == "X" || gameBoard.board[i][0] == "O")));
+                win = gameBoard.getGameBoard().board[i].every((element) => ((element === gameBoard.getGameBoard().board[i][0]) && (gameBoard.getGameBoard().board[i][0] == "X" || gameBoard.getGameBoard().board[i][0] == "O")));
             };
         };
         if (!win) {
-            for (let i=0; i<gameBoard.columns-1; i++) {
+            for (let i=0; i<gameBoard.getGameBoard().columns; i++) {
                 if (!win) {
-                    win = gameBoard.board.every((element) => ((element[i] === gameBoard.board[0][i]) && (gameBoard.board[0][i] == "X" || gameBoard.board[0][i] == "O")));
+                    win = gameBoard.getGameBoard().board.every((element) => ((element[i] === gameBoard.getGameBoard().board[0][i]) && (gameBoard.getGameBoard().board[0][i] == "X" || gameBoard.getGameBoard().board[0][i] == "O")));
                 };
             };
         };
-        if (!win) {win = gameBoard.board.every((element) => (element[gameBoard.board.indexOf(element)] === gameBoard.board[1][1]) && (gameBoard.board[1][1] == "X" || gameBoard.board[1][1] == "O"));};
-        if (!win) {win = gameBoard.board.every((element) => (element[gameBoard.rows - 1 - gameBoard.board.indexOf(element)] === gameBoard.board[1][1])  && (gameBoard.board[1][1] == "X" || gameBoard.board[1][1] == "O"));};
+        if (!win) {win = gameBoard.getGameBoard().board.every((element) => (element[gameBoard.getGameBoard().board.indexOf(element)] === gameBoard.getGameBoard().board[1][1]) && (gameBoard.getGameBoard().board[1][1] == "X" || gameBoard.getGameBoard().board[1][1] == "O"));};
+        if (!win) {win = gameBoard.getGameBoard().board.every((element) => (element[gameBoard.getGameBoard().rows - 1 - gameBoard.getGameBoard().board.indexOf(element)] === gameBoard.getGameBoard().board[1][1])  && (gameBoard.getGameBoard().board[1][1] == "X" || gameBoard.getGameBoard().board[1][1] == "O"));};
+        return win;
     };
 
-    while (!win) {
-        initRound();
-        checkWin(gameBoard.getGameBoard());
-    }
+    const enablePlaceMarker = function() {
+        document.body.addEventListener("click", placeMarker, false);
+    };
+
+    const enableSwitchPlayer = function() {
+        document.body.addEventListener("click", switchPlayer, false);
+    };
+
+    const disablePlaceMarker = function() {
+        document.body.removeEventListener("click", placeMarker, false);
+    };
+
+    const disableSwitchPlayer = function() {
+        document.body.removeEventListener("click", switchPlayer, false);
+    };
+
+    const enableCheckWin = function() {
+        document.body.addEventListener("click", checkWin, false)
+    };
+
+    initRound();
 })();
