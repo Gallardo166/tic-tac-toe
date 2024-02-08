@@ -45,10 +45,41 @@ const gameBoard = (function() {
 })();
 
 //factory function for player
-function createPlayer (marker, title) {
-    name = prompt(`What is the ${title}'s name?`);
-    return {name, marker, title};
-};
+const getPlayers = (function() {
+    let playerOneForm = document.querySelector("form#player-1");
+    let playerOneInput = document.querySelector("#player-1-name");
+    let playerTwoForm = document.querySelector("form#player-2");
+    let playerTwoInput = document.querySelector("#player-2-name");
+    let playerOne, playerTwo;
+
+    const createPlayers = function(e) {
+        playerTwoInput.blur();
+        playerOne = {name: playerOneInput.value, marker: "X", title: "Player One"};
+        playerTwo = {name: playerTwoInput.value, marker: "O", title: "Player Two"};
+        pubsub.emit("controlGame", playerOne, playerTwo);
+        e.preventDefault();
+    };
+
+    const setPlayerOne = function() {
+        setTimeout(function() {playerOneInput.focus()}, 0);
+        playerOneForm.addEventListener("submit", setPlayerTwo);
+    };
+    
+    const setPlayerTwo = function(e) {
+        playerTwoInput.focus();
+        playerTwoForm.addEventListener("submit", createPlayers);
+        e.preventDefault();
+    };
+
+    const clearInputs = function() {
+        playerOneInput.value = "";
+        playerTwoInput.value = "";
+    };
+
+    pubsub.on("setPlayerOne", setPlayerOne);
+    pubsub.on("clearInputs", clearInputs);
+})()
+
 
 //gameOver module
 const gameOver = (function() {
@@ -74,14 +105,12 @@ const gameOver = (function() {
 const ticTacToeGame = (function() {
 
     const startGame = function() {
-        controlGame();
+        pubsub.emit("setPlayerOne");
     };
     
-    const controlGame = function() {
-        pubsub.emit("createGameBoard", 3, 3)
-        let firstPlayer = createPlayer("X", "Player 1");
-        let secondPlayer = createPlayer("O", "Player 2");
-        players = [firstPlayer, secondPlayer];
+    const controlGame = function(playerOne, playerTwo) {
+        pubsub.emit("createGameBoard", 3, 3);
+        players = [playerOne, playerTwo];
         activePlayer = players[0];
 
         const placeMarker = function(e) {
@@ -91,7 +120,8 @@ const ticTacToeGame = (function() {
                     currentRow = Number(e.target.classList[1].at(-1)) - 1;
                     currentColumn = Number(e.target.classList[2].at(-1)) - 1;
                     pubsub.emit("editGameBoard", activePlayer, currentRow, currentColumn);
-                } else {alert("This spot is taken!")};
+                    document.querySelector(".alert").textContent = "";
+                } else {document.querySelector(".alert").textContent = "That spot is taken!"};
             };
         };
         const enablePlaceMarker = function() {
@@ -106,8 +136,8 @@ const ticTacToeGame = (function() {
             document.body.addEventListener("click", switchPlayer, false);
         };
 
-        const stopRoundIfWin = function() {
-            if (checkWin(gameBoard.getGameBoard())) {
+        const stopRoundIfWin = function(e) {
+            if (checkWin(gameBoard.getGameBoard()) && e.target.classList.contains("cell")) {
                 pubsub.emit("openGameOver", (activePlayer == players[0]) ? players[1].name : players[0].name);
                 document.body.removeEventListener("click", placeMarker, false);
                 document.body.removeEventListener("click", switchPlayer, false);
@@ -145,12 +175,16 @@ const ticTacToeGame = (function() {
     };
 
     const restartGame = function() {
+        pubsub.emit("clearInputs");
         pubsub.emit("resetGameBoard");
         eraseMarker();
         startGame();
     };
 
+    pubsub.on("controlGame", controlGame);
     pubsub.on("restartGame", restartGame);
 
     startGame();
+
+    return {checkWin};
 })();
