@@ -14,6 +14,7 @@ var pubsub = {
 //module for game board
 const gameBoard = (function() {
     var gameBoard = {board: []};
+    let borderCells = document.querySelectorAll(".row-1, .row-2, .column-1, .column-2")
 
     const createGameBoard = function(rows, columns) {
         for (i=0; i<rows; i++) {
@@ -37,9 +38,19 @@ const gameBoard = (function() {
 
     const getGameBoard = () => gameBoard;
 
+    const showBorder = function() {
+        Array.from(borderCells).forEach((element) => element.classList.add("active"));
+    };
+
+    const hideBorder = function() {
+        Array.from(borderCells).forEach((element) => element.classList.remove("active"));
+    };
+
     pubsub.on("createGameBoard", createGameBoard);
     pubsub.on("editGameBoard", editGameBoard);
     pubsub.on("resetGameBoard", resetGameBoard);
+    pubsub.on("showBorder", showBorder);
+    pubsub.on("hideBorder", hideBorder);
 
     return {getGameBoard};
 })();
@@ -87,8 +98,13 @@ const gameOver = (function() {
     winner = document.querySelector("#winner");
     confirmButton = document.querySelector("#ok-button");
 
-    const openGameOver = function(activePlayer) {
-        winner.textContent = `${activePlayer} is the winner!`
+    const openGameOverWin = function(activePlayer) {
+        winner.textContent = `${activePlayer} is the winner!`;
+        dialog.showModal();
+    };
+
+    const openGameOverTie = function() {
+        winner.textContent = "It's a tie!";
         dialog.showModal();
     };
 
@@ -98,7 +114,8 @@ const gameOver = (function() {
         });
     };
 
-    pubsub.on("openGameOver", openGameOver)
+    pubsub.on("openGameOverWin", openGameOverWin);
+    pubsub.on("openGameOverTie", openGameOverTie);
     confirmRestart();
 })();
 
@@ -110,6 +127,7 @@ const ticTacToeGame = (function() {
     
     const controlGame = function(playerOne, playerTwo) {
         pubsub.emit("createGameBoard", 3, 3);
+        pubsub.emit("showBorder");
         players = [playerOne, playerTwo];
         activePlayer = players[0];
 
@@ -138,7 +156,11 @@ const ticTacToeGame = (function() {
 
         const stopRoundIfWin = function(e) {
             if (checkWin(gameBoard.getGameBoard()) && e.target.classList.contains("cell")) {
-                pubsub.emit("openGameOver", (activePlayer == players[0]) ? players[1].name : players[0].name);
+                pubsub.emit("openGameOverWin", (activePlayer == players[0]) ? players[1].name : players[0].name);
+                document.body.removeEventListener("click", placeMarker, false);
+                document.body.removeEventListener("click", switchPlayer, false);
+            } else if (checkFill(gameBoard.getGameBoard()) && e.target.classList.contains("cell")) {
+                pubsub.emit("openGameOverTie");
                 document.body.removeEventListener("click", placeMarker, false);
                 document.body.removeEventListener("click", switchPlayer, false);
             };
@@ -148,6 +170,14 @@ const ticTacToeGame = (function() {
         enableSwitchPlayer();
 
         document.body.addEventListener("click", stopRoundIfWin, false);
+    };
+
+    const checkFill = function(gameBoard) {
+        let isFilled = true;
+        for (let i=0; i<gameBoard.rows; i++) {
+            if (gameBoard.board[i][0] == "" || gameBoard.board[i][1] == "" || gameBoard.board[i][2] == "") isFilled = false;
+        };
+        return isFilled;
     };
     
     const checkWin = function(gameBoard) {
@@ -177,6 +207,7 @@ const ticTacToeGame = (function() {
     const restartGame = function() {
         pubsub.emit("clearInputs");
         pubsub.emit("resetGameBoard");
+        pubsub.emit("hideBorder");
         eraseMarker();
         startGame();
     };
@@ -185,6 +216,4 @@ const ticTacToeGame = (function() {
     pubsub.on("restartGame", restartGame);
 
     startGame();
-
-    return {checkWin};
 })();

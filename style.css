@@ -1,41 +1,203 @@
 * {
     margin: 0;
     padding: 0;
+    font-family: poppins, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    color: white;
+}
+
+@font-face {
+    font-family: poppins;
+    font-weight: 700;
+    src: url(poppins/Poppins-Bold.ttf);
+}
+
+@font-face {
+    font-family: poppins;
+    font-weight: 400;
+    src: url(poppins/Poppins-Medium.ttf);
+}
+
+@font-face {
+    font-family: poppins;
+    font-weight: 200;
+    src: url(poppins/Poppins-Light.ttf);
+}
+
+body {
+    height: 100vh;
+    background-color: #1e1e1e;
 }
 
 .container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6vh;
+    gap: 3vh;
+}
+
+.header > h1 {
+    margin-top: 42px;
+    font-weight: 700;
+    font-size: 2.4rem;
 }
 
 .body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 7vh;
+    gap: 2vh;
 }
 
 .players {
     display: flex;
-    gap:6vw;
+    gap: 5.6vw;
     justify-content: center;
 }
 
-#player-1, #player-2 {
-    border: 1px solid black;
-    width: 32vw;
-    height: 8vh;
+#player {
+    border: 0.5px solid rgb(61, 61, 61);
+    border-radius: 8px;
+    background-color: rgb(38, 38, 38);
+    width: max(120px, 38vw);
+    height: 10vh;
+    box-shadow: 0 3px 3px rgb(0, 0, 0, 30%);
+    display: flex;
+    justify-content: center;
+}
+
+#player:has(> form > input:focus) {
+    border: 0.5px solid #94a3b8;
+}
+
+#player > form {
+    width: 95%;
+    height: 100%;
+    border: none;
+    display: grid;
+    grid-template: 4fr 2fr 1fr / 2fr 1fr;
+    justify-content: center;
+    align-items: center;
+    column-gap: 8px;
+}
+
+label {
+    text-align: center;
+    grid-area: 1 / 1 / span 1 / span 2;
+    font-weight: 400;
+    font-size: 0.9rem;
+}
+
+input {
+    grid-area: 2 / 1 / span 1 / span 1;
+    align-self: center;
+    width: 28vw;
+    height: 2.3vh;
+    appearance: none;
+    outline: none;
+    border: 0.8px solid rgb(61, 61, 61);
+    border-radius: 4px;
+    background: none;
+    text-align: center;
+    padding: 2px;
+    font-weight: 200;
+}
+
+input:focus {
+    border: 1px solid #b4c0d1;
+}
+
+button {
+    appearance: none;
+    outline: none;
+    border: 0.4px solid #404040;
+    background-color: #57534e;
+    border-radius: 4px;
+    max-width: 48px;
+    height: 2.3vh;
+    font-weight: 200;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#player button {
+    padding: 10px 0;
 }
 
 .gameboard {
     display: grid;
     grid-template: repeat(3, 1fr) / repeat(3, 1fr);
-    width: 50vw
+    width: min(360px, 60vw);
+    height: auto;
 }
 
 .cell {
-    border: 1px solid black;
-    height: calc(50vw / 3)
+    height: min(calc(60vw / 3), calc(360px / 3));
+    font-weight: 700;
+    font-size: 3rem;
+    display: grid;
+    justify-content: center;
+    align-items: center;
+}
+
+.column-1, .column-2 {
+    border-right: 5px solid #1e1e1e;
+}
+
+.row-1, .row-2 {
+    border-bottom: 5px solid #1e1e1e;
+}
+
+.active {
+    border-color: white;
+}
+
+#play-again-dialog {
+    position: absolute;
+    top: 24%;
+    left: 20%;
+    width: 60vw;
+    height: 120px;
+    background-color: rgb(53, 53, 58);
+    border: 0.5px solid #94a3b8;
+    border-radius: 9px;
+}
+
+#play-again-dialog > p {
+    text-align: center;
+    margin-top: 10px;
+}
+
+#play-again-dialog > form {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+#play-again-dialog button {
+    padding:10px 12px;
+}
+
+#play-again-dialog::backdrop {
+    background: rgb(0 0 0 / 75%);
+}
+
+.alert {
+    height: 20px;
+    font-weight: 200;
+}
+
+@media only screen and (min-width: 600px) {
+    .body {
+        gap: 4vh;
+    }
+    #player {
+        height: max(76px, 10vh);
+    }
+
+    input {
+        height: 3.4vh;
+    }
 }
